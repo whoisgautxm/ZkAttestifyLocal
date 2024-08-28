@@ -1,14 +1,21 @@
+use ethers_core::types::{RecoveryMessage, Signature, H160, H256};
 use risc0_zkvm::guest::env;
 
-
 fn main() {
-    // TODO: Implement your guest code here
+    // Specify types for the tuple
+    let (signer_address, signature, digest): (H160, Signature, H256) = env::read();
 
-    // read the input
-    let input: u32 = env::read();
+    let recovery_message = RecoveryMessage::Hash(digest);
 
-    // TODO: do something with the input
+    let recovered_address = signature.recover(recovery_message).unwrap();
 
-    // write public output to the journal
-    env::commit(&input);
+    // ... rest of your code ...
+
+    if signer_address != recovered_address {
+        panic!("Invalid signature");
+    }
+
+    println!("Signature is valid");
+    env::commit::<(H160, Signature)>(&(signer_address, signature));
+    println!("Signature is committed");
 }

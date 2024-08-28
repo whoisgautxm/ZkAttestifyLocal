@@ -8,6 +8,6 @@ methods = { path = "../methods" }
 risc0-zkvm = { version = "1.0.5" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde = { version = "1.0", features = ["derive"] }
-ethers-core = "1.0.0"
+ethers-core = { version = "2.0.14"}
 k256 = { version = "0.13", features = ["serde"] }
 rand_core = "0.6.4"
