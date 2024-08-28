@@ -23,7 +23,6 @@ struct DateOfBirth {
 }
 
 fn main() {
-    // Specify types for the tuple
     let (signer_address, signature, digest, message, dob, threshold_age , current_age , current_timestamp): (
         H160,
         Signature,
@@ -36,9 +35,6 @@ fn main() {
     ) = env::read();
 
     let recovery_message = RecoveryMessage::Hash(digest);
-
-    // let age = calculate_age(&dob);
-
     let recovered_address = signature.recover(recovery_message).unwrap();
 
     let hash: H256 = keccak256(&[signer_address.as_bytes(), &[current_age]].concat()).into();
@@ -51,7 +47,6 @@ fn main() {
         if current_age < threshold_age {
             panic!("Age is below threshold");
         } else {
-            println!("Signature is valid");
             env::commit::<(H160, Signature, Attest,u8,i64,H256)>(&(
                 signer_address,
                 signature,
@@ -60,7 +55,6 @@ fn main() {
                 current_timestamp,
                 hash,
             ));
-            println!("Signature is committed");
         }
     }
 }
