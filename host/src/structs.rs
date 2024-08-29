@@ -18,9 +18,7 @@ pub struct Attest {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DateOfBirth {
-    pub day: u8,
-    pub month: u8,
-    pub year: u16,
+   pub unix_timestamp: u128,
 }
 
 // Structs for deserializing JSON input

@@ -5,9 +5,9 @@ mod zk_proof;
 use std::fs;
 use std::time::Instant;
 use ethers_core::types::H160;
-use structs::{InputData, Attest, DateOfBirth};
+use structs::{InputData, Attest};
 use methods::ADDRESS_ID;
-use helper::{domain_separator, calculate_age, hash_message , decode_date_of_birth};
+use helper::{domain_separator, hash_message };
 use zk_proof::prove_address;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -33,6 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let signer_address: H160 = input_data.signer.parse()?;
 
+
     let message = Attest {
         version: input_data.sig.message.version,
         schema: input_data.sig.message.schema.parse()?,
@@ -46,11 +47,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
 
-    let dob = decode_date_of_birth(&ethers_core::utils::hex::decode(&input_data.sig.message.data[2..]).expect("Failed to decode hex data"));
+    // let dob = decode_date_of_birth(&ethers_core::utils::hex::decode(&input_data.sig.message.data[2..]).expect("Failed to decode hex data"));
 
-    let current_age = calculate_age(&dob);
-    let current_timestamp = chrono::Utc::now().timestamp();
-    let threshold_age: u8 = 18;
+    // let current_age = calculate_age(&dob);
+    let current_timestamp = chrono::Utc::now().timestamp() as u64;
+    let threshold_age: u64 = 18 * 365 * 24 * 60 * 60; // 18 years in seconds
 
     let domain_separator = domain_separator(&domain, ethers_core::utils::keccak256(
         b"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
@@ -68,10 +69,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &signer_address,
         &signature,
         &digest,
-        &dob,
         &threshold_age,
-        &current_age,
         &current_timestamp,
+        message.data,
     );
 
     receipt.verify(ADDRESS_ID).unwrap();
@@ -79,8 +79,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let (signer_address,  threshold_age, current_timestamp): (
         H160,
-        u8,
-        i64,
+        u64,
+        u64,
     ) = receipt.journal.decode().unwrap();
 
     println!("The signer {:?} is verified to be above the age of {:?} on the time of {:?} attestation.", signer_address,threshold_age,current_timestamp);
