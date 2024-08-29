@@ -2,7 +2,6 @@
 use ethers_core::types::{Address, H256};
 use serde::{Deserialize, Serialize};
 
-
 // Struct for the message
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Attest {

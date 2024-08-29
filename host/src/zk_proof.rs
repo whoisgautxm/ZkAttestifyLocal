@@ -1,10 +1,9 @@
 // src/zk_proof.rs
-
-use ethers_core::types::{H160, H256};
-use risc0_zkvm::{ExecutorEnv, Receipt};
 use crate::structs::{Attest, DateOfBirth};
 use ethers_core::types::Signature;
+use ethers_core::types::{H160, H256};
 use methods::ADDRESS_ELF;
+use risc0_zkvm::{ExecutorEnv, Receipt};
 
 pub fn prove_address(
     signer_address: &H160,
@@ -43,5 +42,5 @@ pub fn prove_address(
         .unwrap();
 
     let prover = risc0_zkvm::default_prover();
- prover.prove(env, ADDRESS_ELF).unwrap().receipt
-    }
+    prover.prove(env, ADDRESS_ELF).unwrap().receipt
+}

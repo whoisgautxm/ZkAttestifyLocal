@@ -1,11 +1,12 @@
 // src/helpers.rs
-
+use crate::structs::{Attest, DateOfBirth};
+use chrono::Datelike;
+use ethers_core::abi::decode;
+use ethers_core::abi::ParamType;
 use ethers_core::abi::Token;
+use ethers_core::types::transaction::eip712::EIP712Domain;
 use ethers_core::types::{H256, U256};
 use ethers_core::utils::keccak256;
-use chrono::Datelike;
-use crate::structs::{DateOfBirth, Attest};
-use ethers_core::types::transaction::eip712::EIP712Domain;
 
 pub fn domain_separator(domain: &EIP712Domain, type_hash: H256) -> H256 {
     let encoded = ethers_core::abi::encode(&[
@@ -56,4 +57,35 @@ pub fn hash_message(domain_separator: &H256, message: &Attest) -> H256 {
     combined.extend_from_slice(&hashed_message);
 
     keccak256(&combined).into()
+}
+
+pub fn decode_date_of_birth(data: &Vec<u8>) -> DateOfBirth {
+    // Define the types and expected layout
+    let param_types = vec![
+        ParamType::Uint(8),  // day
+        ParamType::Uint(8),  // month
+        ParamType::Uint(16), // year
+    ];
+
+    // Decode the data
+    let decoded: Vec<ethers_core::abi::Token> =
+        decode(&param_types, &data).expect("Failed to decode data");
+
+    let day = decoded[0].clone().into_uint().expect("Failed to parse day");
+    let month = decoded[1]
+        .clone()
+        .into_uint()
+        .expect("Failed to parse month");
+    let year = decoded[2]
+        .clone()
+        .into_uint()
+        .expect("Failed to parse year");
+
+    println!("Decoded date of birth: {}-{}-{}", day, month, year);
+
+    DateOfBirth {
+        day: day.as_u128() as u8,
+        month: month.as_u128() as u8,
+        year: year.as_u128() as u16,
+    }
 }

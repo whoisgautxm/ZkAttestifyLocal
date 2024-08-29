@@ -7,7 +7,7 @@ use std::time::Instant;
 use ethers_core::types::H160;
 use structs::{InputData, Attest, DateOfBirth};
 use methods::ADDRESS_ID;
-use helper::{domain_separator, calculate_age, hash_message};
+use helper::{domain_separator, calculate_age, hash_message , decode_date_of_birth};
 use zk_proof::prove_address;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -45,12 +45,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         salt: input_data.sig.message.salt.parse()?,
     };
 
-    // TODO: Extract DOB from the data field or get it from another source
-    let dob = DateOfBirth {
-        day: 1,
-        month: 1,
-        year: 1990,
-    };
+    let dob = decode_date_of_birth(&ethers_core::utils::hex::decode(&input_data.sig.message.data[2..]).expect("Failed to decode hex data"));
 
     let current_age = calculate_age(&dob);
     let current_timestamp = chrono::Utc::now().timestamp();
