@@ -1,0 +1,71 @@
+{
+    "sig": {
+        "version": 2,
+        "domain": {
+            "name": "EAS Attestation",
+            "version": "0.26",
+            "chainId": "11155111",
+            "verifyingContract": "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
+        },
+        "primaryType": "Attest",
+        "types": {
+            "Attest": [
+                {
+                    "name": "version",
+                    "type": "uint16"
+                },
+                {
+                    "name": "schema",
+                    "type": "bytes32"
+                },
+                {
+                    "name": "recipient",
+                    "type": "address"
+                },
+                {
+                    "name": "time",
+                    "type": "uint64"
+                },
+                {
+                    "name": "expirationTime",
+                    "type": "uint64"
+                },
+                {
+                    "name": "revocable",
+                    "type": "bool"
+                },
+                {
+                    "name": "refUID",
+                    "type": "bytes32"
+                },
+                {
+                    "name": "data",
+                    "type": "bytes"
+                },
+                {
+                    "name": "salt",
+                    "type": "bytes32"
+                }
+            ]
+        },
+        "signature": {
+            "r": "0xba593ab6f5f640fd808b308fba2d401e32149f618123ff07fbd2e88560bf54e9",
+            "s": "0x4568efffe93cc0248ee449366e70f0ebf8b9466902c53765eda846186ec4a467",
+            "v": 28
+        },
+        "uid": "0xde6d17a6096a86e511d14f1ea7a9fc5b42272a22708744a4b00c1283a2a73f12",
+        "message": {
+            "version": 2,
+            "schema": "0x504682d2c415cbf32bd54b5b1264d997d219ae429496d142dedd2a9499789190",
+            "recipient": "0x0000000000000000000000000000000000000000",
+            "time": "1724950802",
+            "expirationTime": "0",
+            "refUID": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "revocable": true,
+            "data": "0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000007d4",
+            "nonce": "0",
+            "salt": "0x620cdde57e63754fc8fbdecb3dad9a6f4e9c6dd4bb64fd21e02acb7c11f1f4a1"
+        }
+    },
+    "signer": "0xB1DF9fd903EDcb315eA04ff0B60E53f2a766080e"
+}

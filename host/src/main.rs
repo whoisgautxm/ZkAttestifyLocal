@@ -7,7 +7,7 @@ use methods::{ADDRESS_ELF, ADDRESS_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
 use serde::{Deserialize, Serialize};
 use std::time::Instant;
-
+use std::fs;
 
 // Define the structure for the message
 #[derive(Debug, Serialize, Deserialize)]
@@ -30,6 +30,52 @@ struct DateOfBirth {
     year: u16,
 }
 
+// New structs to deserialize the JSON input
+#[derive(Debug, Deserialize)]
+struct InputData {
+    sig: SignatureData,
+    signer: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct SignatureData {
+    domain: DomainData,
+    signature: SignatureDetails,
+    message: MessageData,
+}
+
+#[derive(Debug, Deserialize)]
+struct DomainData {
+    name: String,
+    version: String,
+    #[serde(rename = "chainId")]
+    chain_id: String,
+    #[serde(rename = "verifyingContract")]
+    verifying_contract: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct SignatureDetails {
+    r: String,
+    s: String,
+    v: u8,
+}
+
+#[derive(Debug, Deserialize)]
+struct MessageData {
+    version: u16,
+    schema: String,
+    recipient: String,
+    time: String,
+    #[serde(rename = "expirationTime")]
+    expiration_time: String,
+    revocable: bool,
+    #[serde(rename = "refUID")]
+    ref_uid: String,
+    data: String,
+    salt: String,
+}
+
 fn domain_separator(domain: &EIP712Domain, type_hash: H256) -> H256 {
     let encoded = encode(&[
         Token::FixedBytes(type_hash.as_bytes().to_vec()),
@@ -42,12 +88,11 @@ fn domain_separator(domain: &EIP712Domain, type_hash: H256) -> H256 {
 }
 
 fn calculate_age(dob: &DateOfBirth) -> u8 {
-    let now = chrono::Utc::now().date_naive(); // Get the current date in UTC without timezone information
+    let now = chrono::Utc::now().date_naive();
     let dob = chrono::NaiveDate::from_ymd_opt(dob.year as i32, dob.month as u32, dob.day as u32)
         .expect("Invalid date of birth");
     let mut age = now.year() - dob.year();
 
-    // Adjust the age if the current date is before the birthday in the current year
     if now.ordinal() < dob.ordinal() {
         age -= 1;
     }
@@ -90,23 +135,46 @@ fn prove_address(
         .build()
         .unwrap();
 
-    // Obtain the default prover.
     let prover = default_prover();
-
-    // Produce a receipt by proving the specified ELF binary.
     prover.prove(env, ADDRESS_ELF).unwrap().receipt
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     let start_time = Instant::now();
 
-    // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
+    // Initialize tracing
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
         .init();
 
-    // date of birth of the user
+    // Read and parse the JSON file
+    let json_str = fs::read_to_string("/Users/shivanshgupta/Desktop/address/host/src/input.json")?;
+    let input_data: InputData = serde_json::from_str(&json_str)?;
+
+    // Extract data from the parsed JSON
+    let domain = EIP712Domain {
+        name: Some(input_data.sig.domain.name),
+        version: Some(input_data.sig.domain.version),
+        chain_id: Some(U256::from_dec_str(&input_data.sig.domain.chain_id)?),
+        verifying_contract: Some(input_data.sig.domain.verifying_contract.parse()?),
+        salt: None,
+    };
+
+    let signer_address: H160 = input_data.signer.parse()?;
+
+    let message = Attest {
+        version: input_data.sig.message.version,
+        schema: input_data.sig.message.schema.parse()?,
+        recipient: input_data.sig.message.recipient.parse()?,
+        time: input_data.sig.message.time.parse()?,
+        expiration_time: input_data.sig.message.expiration_time.parse()?,
+        revocable: input_data.sig.message.revocable,
+        ref_uid: input_data.sig.message.ref_uid.parse()?,
+        data: hex::decode(&input_data.sig.message.data[2..])?,
+        salt: input_data.sig.message.salt.parse()?,
+    };
+
+    // TODO: Extract DOB from the data field or get it from another source
     let dob = DateOfBirth {
         day: 1,
         month: 1,
@@ -114,54 +182,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let current_age = calculate_age(&dob);
-
     let current_timestamp = chrono::Utc::now().timestamp();
-
-    println!("Current timestamp is {:?}", current_timestamp);
-    // threshold for the age
     let threshold_age: u8 = 18;
 
-    let signer_address: H160 = "0xb1df9fd903edcb315ea04ff0b60e53f2a766080e".parse()?;
-
-    // Fill the EIP-712 domain
-    let domain = EIP712Domain {
-        name: Some("EAS Attestation".to_string()),
-        version: Some("0.26".to_string()),
-        chain_id: Some(U256::from_dec_str("11155111").unwrap()),
-        verifying_contract: Some("0xC2679fBD37d54388Ce493F1DB75320D236e1815e".parse()?),
-        salt: None,
-    };
+    println!("Current timestamp is {:?}", current_timestamp);
 
     let eip712_domain_typehash: H256 = keccak256(
         b"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)",
     )
     .into();
 
-    // Generate the domain separator
     let i_domain_separator = domain_separator(&domain, eip712_domain_typehash);
 
-    // Convert the hex string representing the data field to a byte array
-    let hex_data = "67617574616d0000000000000000000000000000000000000000000000000000";
-    let data = hex::decode(hex_data).unwrap();
-
-    let message = Attest {
-        version: 2,
-        schema: "0x1c12bac4f230477c87449a101f5f9d6ca1c492866355c0a5e27026753e5ebf40".parse()?,
-        recipient: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045".parse()?,
-        time: 1724435715,
-        expiration_time: 0,
-        revocable: true,
-        ref_uid: H256::zero(),
-        data,
-        salt: "0x8af354b397009a1070c1d958e1a3ce0ab6246bdc21ff3f862a42994c6fc2c1ba".parse()?,
-    };
-
-    // Define the type hash for the Message struct
     let message_typehash: H256 = keccak256(
-            b"Attest(uint16 version,bytes32 schema,address recipient,uint64 time,uint64 expirationTime,bool revocable,bytes32 refUID,bytes data,bytes32 salt)"
-        ).into();
+        b"Attest(uint16 version,bytes32 schema,address recipient,uint64 time,uint64 expirationTime,bool revocable,bytes32 refUID,bytes data,bytes32 salt)"
+    ).into();
 
-    // Encode the message
     let encoded_message = encode(&[
         Token::FixedBytes(message_typehash.as_bytes().to_vec()),
         Token::Uint(U256::from(message.version)),
@@ -175,29 +211,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Token::FixedBytes(message.salt.as_bytes().to_vec()),
     ]);
 
-    // Generate the hashed message
     let hashed_message = keccak256(&encoded_message);
 
     let prefix: [u8; 1] = [0x19];
-    let eip712_version: [u8; 1] = [0x01]; // EIP-712 is version 1 of EIP-191
+    let eip712_version: [u8; 1] = [0x01];
 
-    // Combine the prefix, eip712_version, hashStructOfDomainSeparator, and hashedMessage
     let mut combined = Vec::new();
     combined.extend_from_slice(&prefix);
     combined.extend_from_slice(&eip712_version);
     combined.extend_from_slice(&i_domain_separator.to_fixed_bytes());
     combined.extend_from_slice(&hashed_message);
 
-    // Generate the final digest
     let digest = keccak256(&combined).into();
 
-    // Define the signature parts
     let signature = Signature {
-        r: "0x5f19cd73e4fb54a8d014150f02068f941fffde1a7382d94265725aa7a8c30861".parse()?,
-        s: "0x031ccb397e2e49c76a4e1f070c4c8ed15e59dad4857429c9bd1e8f9a9b0a0846".parse()?,
-        v: 27,
+        r: input_data.sig.signature.r.parse()?,
+        s: input_data.sig.signature.s.parse()?,
+        v: input_data.sig.signature.v.into(),
     };
-    
+
     let receipt = prove_address(
         &signer_address,
         &signature,
@@ -208,7 +240,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &current_age,
         &current_timestamp,
     );
-    // TODO: Implement code for retrieving receipt journal here.
 
     receipt.verify(ADDRESS_ID).unwrap();
     println!("Receipt verified.");
@@ -223,8 +254,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ) = receipt.journal.decode().unwrap();
 
     println!(
-        "This messsage {:?} is signed with the signature {:?} using the account address {:?} proofs that the signer is above the age of {:?} at the time of {:?} with the hash {:?}",
-        message, signature, signer_address,threshold_age,current_timestamp,hash
+        "This message {:?} is signed with the signature {:?} using the account address {:?} proofs that the signer is above the age of {:?} at the time {:?} with the hash {:?}",
+        message, signature, signer_address, threshold_age, current_timestamp, hash
     );
 
     let elapsed_time = start_time.elapsed();
