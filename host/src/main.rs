@@ -46,32 +46,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         salt: input_data.sig.message.salt.parse()?,
     };
 
-
-    // let dob = decode_date_of_birth(&ethers_core::utils::hex::decode(&input_data.sig.message.data[2..]).expect("Failed to decode hex data"));
-
-    // let current_age = calculate_age(&dob);
+    // Calculate the current timestamp and the threshold age
     let current_timestamp = chrono::Utc::now().timestamp() as u64;
     let threshold_age: u64 = 18 * 365 * 24 * 60 * 60; // 18 years in seconds
 
+    // Calculate the domain separator and the message hash
     let domain_separator = domain_separator(&domain, ethers_core::utils::keccak256(
         b"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
     ).into());
-
     let digest = hash_message(&domain_separator, &message);
 
+    // Parse the signature
     let signature = ethers_core::types::Signature {
         r: input_data.sig.signature.r.parse()?,
         s: input_data.sig.signature.s.parse()?,
         v: input_data.sig.signature.v.into(),
     };
 
+    // Fields which are sent to the guest code
     let receipt = prove_address(
         &signer_address,
         &signature,
         &digest,
         &threshold_age,
         &current_timestamp,
-        message.data,
+        message.data,  // data attested in schema in bytes
     );
 
     receipt.verify(ADDRESS_ID).unwrap();
