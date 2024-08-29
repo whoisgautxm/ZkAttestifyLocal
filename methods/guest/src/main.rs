@@ -23,11 +23,12 @@ struct DateOfBirth {
 }
 
 fn main() {
-    let (signer_address, signature, digest, message, dob, threshold_age , current_age , current_timestamp): (
+
+
+    let (signer_address, signature, digest, dob, threshold_age , current_age , current_timestamp): (
         H160,
         Signature,
         H256,
-        Attest,
         DateOfBirth,
         u8,
         u8,
@@ -37,9 +38,8 @@ fn main() {
     let recovery_message = RecoveryMessage::Hash(digest);
     let recovered_address = signature.recover(recovery_message).unwrap();
 
-    let hash: H256 = keccak256(&[signer_address.as_bytes(), &[current_age]].concat()).into();
-
     // let current_timestamp = chrono::Utc::now().timestamp();
+
 
     if signer_address != recovered_address {
         panic!("Invalid signature");
@@ -47,14 +47,11 @@ fn main() {
         if current_age < threshold_age {
             panic!("Age is below threshold");
         } else {
-            env::commit::<(H160, Signature, Attest,u8,i64,H256)>(&(
+            env::commit::<(H160,  u8,i64)>(&(
                 signer_address,
-                signature,
-                message,
                 threshold_age,
                 current_timestamp,
-                hash,
             ));
         }
-    }
+    } 
 }

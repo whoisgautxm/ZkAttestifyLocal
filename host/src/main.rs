@@ -45,6 +45,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         salt: input_data.sig.message.salt.parse()?,
     };
 
+
     let dob = decode_date_of_birth(&ethers_core::utils::hex::decode(&input_data.sig.message.data[2..]).expect("Failed to decode hex data"));
 
     let current_age = calculate_age(&dob);
@@ -67,7 +68,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &signer_address,
         &signature,
         &digest,
-        &message,
         &dob,
         &threshold_age,
         &current_age,
@@ -77,20 +77,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     receipt.verify(ADDRESS_ID).unwrap();
     println!("Receipt verified.");
 
-    let (signer_address, signature, message, threshold_age, current_timestamp, hash): (
+    let (signer_address,  threshold_age, current_timestamp): (
         H160,
-        ethers_core::types::Signature,
-        Attest,
         u8,
         i64,
-        ethers_core::types::H256,
     ) = receipt.journal.decode().unwrap();
 
-    println!(
-        "This message {:?} is signed with the signature {:?} using the account address {:?} proofs that the signer is above the age of {:?} at the time {:?} with the hash {:?}",
-        message, signature, signer_address, threshold_age, current_timestamp, hash
-    );
-
+    println!("The signer {:?} is verified to be above the age of {:?} on the time of {:?} attestation.", signer_address,threshold_age,current_timestamp);
     let elapsed_time = start_time.elapsed();
     println!("Execution time: {:?}", elapsed_time);
 

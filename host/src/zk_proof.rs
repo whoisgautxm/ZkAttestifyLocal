@@ -1,5 +1,5 @@
 // src/zk_proof.rs
-use crate::structs::{Attest, DateOfBirth};
+use crate::structs:: DateOfBirth;
 use ethers_core::types::Signature;
 use ethers_core::types::{H160, H256};
 use methods::ADDRESS_ELF;
@@ -9,7 +9,6 @@ pub fn prove_address(
     signer_address: &H160,
     signature: &Signature,
     digest: &H256,
-    message: &Attest,
     dob: &DateOfBirth,
     threshold_age: &u8,
     current_age: &u8,
@@ -19,7 +18,6 @@ pub fn prove_address(
         &H160,
         &Signature,
         &H256,
-        &Attest,
         &DateOfBirth,
         &u8,
         &u8,
@@ -28,7 +26,6 @@ pub fn prove_address(
         signer_address,
         signature,
         digest,
-        message,
         dob,
         threshold_age,
         current_age,

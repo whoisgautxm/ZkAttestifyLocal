@@ -60,7 +60,7 @@ pub fn hash_message(domain_separator: &H256, message: &Attest) -> H256 {
 }
 
 pub fn decode_date_of_birth(data: &Vec<u8>) -> DateOfBirth {
-    // Define the types and expected layout
+    
     let param_types = vec![
         ParamType::Uint(8),  // day
         ParamType::Uint(8),  // month
