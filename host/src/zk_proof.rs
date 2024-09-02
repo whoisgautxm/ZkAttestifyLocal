@@ -4,30 +4,31 @@ use ethers_core::types::Signature;
 use ethers_core::types::{H160, H256};
 use methods::ADDRESS_ELF;
 use risc0_zkvm::{ExecutorEnv, Receipt};
+use crate::structs::Attest;
 // use tracing_subscriber::registry::Data;
 
 pub fn prove_address(
     signer_address: &H160,
     signature: &Signature,
-    digest: &H256,
     threshold_age: &u64,
     current_timestamp: &u64,
-    data: Vec<u8>,
+    attest: Attest,
+    domain_separator: H256,
 ) -> Receipt {
     let input: (
         &H160,
         &Signature,
-        &H256,
         &u64,
         &u64,
-        Vec<u8>
+        Attest,
+        H256,
     ) = (
         signer_address,
         signature,
-        digest,
         threshold_age,
         current_timestamp,
-        data,
+        attest,
+        domain_separator,
     );
 
     let env = ExecutorEnv::builder()

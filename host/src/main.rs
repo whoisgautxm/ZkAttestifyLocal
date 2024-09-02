@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     // Read and parse the JSON file
-    let json_str = fs::read_to_string("/Users/shivanshgupta/Desktop/address/host/src/input.json")?;
+    let json_str = fs::read_to_string("./host/src/input.json")?;
     let input_data: InputData = serde_json::from_str(&json_str)?;
 
     // Extract data from the parsed JSON
@@ -54,7 +54,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let domain_separator = domain_separator(&domain, ethers_core::utils::keccak256(
         b"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
     ).into());
-    let digest = hash_message(&domain_separator, &message);
 
     // Parse the signature
     let signature = ethers_core::types::Signature {
@@ -67,10 +66,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let receipt = prove_address(
         &signer_address,
         &signature,
-        &digest,
         &threshold_age,
         &current_timestamp,
-        message.data,  // data attested in schema in bytes
+        message,  // Pass the entire Attest struct
+        domain_separator,  // Pass the domain separator
     );
 
     receipt.verify(ADDRESS_ID).unwrap();
