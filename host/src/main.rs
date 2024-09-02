@@ -75,17 +75,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     receipt.verify(ADDRESS_ID).unwrap();
     println!("Receipt verified.");
 
-    let (signer_address,  threshold_age, current_timestamp, attest_time, domain_separator): (
+    let (signer_address,  threshold_age, current_timestamp, attest_time, recipient, domain_separator): (
         H160,
         u64,
         u64,
         u64,
+        H160,
         H256,
     ) = receipt.journal.decode().unwrap();
 
     println!("The signer {:?} is verified to be above the age of {:?} on the time of {:?} attestation.", signer_address,threshold_age,current_timestamp);
     println!("The attestation time is {:?}", attest_time);
     println!("The domain separator is {:?}", domain_separator);
+    println!("The recipient is {:?}", recipient);
     let elapsed_time = start_time.elapsed();
     println!("Execution time: {:?}", elapsed_time);
 
