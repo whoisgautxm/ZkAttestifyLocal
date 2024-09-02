@@ -90,10 +90,12 @@ fn main() {
         if age_in_seconds < threshold_age {
             panic!("Age is below threshold");
         } else {
-            env::commit::<(H160, u64, u64)>(&(
+            env::commit::<(H160, u64, u64, u64, H256)>(&(
                 signer_address,
                 threshold_age,
                 current_timestamp,
+                attest.time,
+                domain_separator,
             ));
         }
     } 

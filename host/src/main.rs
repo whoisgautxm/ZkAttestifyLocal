@@ -4,7 +4,7 @@ mod zk_proof;
 
 use std::fs;
 use std::time::Instant;
-use ethers_core::types::H160;
+use ethers_core::types::{H160, H256};
 use structs::{InputData, Attest};
 use methods::ADDRESS_ID;
 use helper::{domain_separator, hash_message };
@@ -75,13 +75,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     receipt.verify(ADDRESS_ID).unwrap();
     println!("Receipt verified.");
 
-    let (signer_address,  threshold_age, current_timestamp): (
+    let (signer_address,  threshold_age, current_timestamp, attest_time, domain_separator): (
         H160,
         u64,
         u64,
+        u64,
+        H256,
     ) = receipt.journal.decode().unwrap();
 
     println!("The signer {:?} is verified to be above the age of {:?} on the time of {:?} attestation.", signer_address,threshold_age,current_timestamp);
+    println!("The attestation time is {:?}", attest_time);
+    println!("The domain separator is {:?}", domain_separator);
     let elapsed_time = start_time.elapsed();
     println!("Execution time: {:?}", elapsed_time);
 
