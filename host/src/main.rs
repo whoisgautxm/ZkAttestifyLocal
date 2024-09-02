@@ -7,7 +7,7 @@ use std::time::Instant;
 use ethers_core::types::{H160, H256};
 use structs::{InputData, Attest};
 use methods::ADDRESS_ID;
-use helper::{domain_separator, hash_message };
+use helper::{domain_separator };
 use zk_proof::prove_address;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
