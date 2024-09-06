@@ -74,6 +74,8 @@ fn main() {
         H256,
     ) = env::read();
 
+    println!("Domain Separator: {:?}", domain_separator);
+
      // Verify that the data is related to the digest
      let calculated_digest = hash_message(&domain_separator, &attest);
 

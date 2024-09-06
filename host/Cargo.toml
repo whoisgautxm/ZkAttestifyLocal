@@ -13,4 +13,6 @@ k256 = { version = "0.13", features = ["serde"] }
 rand_core = "0.6.4"
 chrono = "=0.4.38"
 serde_json = "1.0.127"
+risc0-ethereum-contracts = { git = "https://github.com/risc0/risc0-ethereum", tag = "v1.0.0" }
+sha2 = "0.10.8"
 

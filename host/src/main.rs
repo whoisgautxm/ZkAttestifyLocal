@@ -5,10 +5,14 @@ mod zk_proof;
 use std::fs;
 use std::time::Instant;
 use ethers_core::types::{H160, H256};
+use risc0_zkvm::Receipt;
 use structs::{InputData, Attest};
-use methods::ADDRESS_ID;
+use methods::{ADDRESS_ID,ADDRESS_ELF};
 use helper::{domain_separator };
 use zk_proof::prove_address;
+use risc0_ethereum_contracts::groth16;
+use sha2::{Digest, Sha256};
+use risc0_zkvm::compute_image_id;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start_time = Instant::now();
@@ -68,9 +72,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &signature,
         &threshold_age,
         &current_timestamp,
-        message,  // Pass the entire Attest struct
+        &message,  // Pass the entire Attest struct
         domain_separator,  // Pass the domain separator
     );
+
+    println!("signer address: {:?}", signer_address);
+    let signer_address_bytes: [u8; 20] = signer_address.into();
+    println!("Signer Address: {:?}", signer_address_bytes);
+
+    println!("Recipient address: {:?}", message.recipient);
+    let recipient_address_bytes: [u8; 20] = message.recipient.into();
+    println!("Recipient Address: {:?}", recipient_address_bytes);
+
+    println!("Domain Separator: {:?}", domain_separator);
+    let domain_separator_bytes: [u8; 32] = domain_separator.into();
+    println!("Domain Separator: {:?}", domain_separator_bytes);
+
+    println!("Receipt: {:?}", receipt);
 
     receipt.verify(ADDRESS_ID).unwrap();
     println!("Receipt verified.");
@@ -83,6 +101,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         H160,
         H256,
     ) = receipt.journal.decode().unwrap();
+
+    let seal = groth16::encode(receipt.inner.groth16()?.seal.clone())?;
+
+    let journal = receipt.journal.bytes.clone();
+
+      // Calculate SHA256 hash of the journal
+      let journal_hash = Sha256::digest(&journal);
+    
+    println!("Journal SHA256 hash: {:?}", journal_hash);
+
+    println!("Seal: {:?}", seal);
+
+    let image = compute_image_id(ADDRESS_ELF);
+    println!("image:{:?}",image);
 
     println!("The signer {:?} is verified to be above the age of {:?} on the time of {:?} attestation.", signer_address,threshold_age,current_timestamp);
     println!("The attestation time is {:?}", attest_time);
