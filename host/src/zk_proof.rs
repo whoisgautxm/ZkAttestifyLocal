@@ -38,7 +38,7 @@ pub fn prove_address(
         .unwrap();
 
     let prover = risc0_zkvm::default_prover();
-    prover.prove_with_ctx(env, &VerifierContext::default(), ADDRESS_ELF, &ProverOpts::groth16()).unwrap().receipt
+    prover.prove(env, ADDRESS_ELF).receipt
 }
 
 

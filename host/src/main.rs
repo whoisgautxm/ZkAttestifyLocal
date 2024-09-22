@@ -2,8 +2,10 @@ mod structs;
 mod helper;
 mod zk_proof;
 
-use std::fs;
+use std::{env, fs};
+use bincode::*;
 use std::time::Instant;
+use serde::{Serialize, Deserialize};
 use ethers_core::types::{H160, H256};
 use risc0_zkvm::Receipt;
 use structs::{InputData, Attest};
@@ -13,6 +15,8 @@ use zk_proof::prove_address;
 use risc0_ethereum_contracts::groth16;
 use sha2::{Digest, Sha256};
 use risc0_zkvm::compute_image_id;
+use std::fs;
+use std::path::Path;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start_time = Instant::now();
@@ -75,6 +79,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &message,  // Pass the entire Attest struct
         domain_separator,  // Pass the domain separator
     );
+
+    // Save the receipt to a file
+    let receipt_path = "receipt.bin";
+    match fs::write(receipt_path, bincode::serialize(&receipt)?) {
+        Ok(_) => println!("Receipt saved successfully to {}", receipt_path),
+        Err(e) => eprintln!("Failed to save receipt: {}", e),
+    }
+
+    // Verify that the file was created and has content
+    if Path::new(receipt_path).exists() {
+        match fs::metadata(receipt_path) {
+            Ok(metadata) => println!("Receipt file size: {} bytes", metadata.len()),
+            Err(e) => eprintln!("Failed to get receipt file metadata: {}", e),
+        }
+    } else {
+        println!("Receipt file was not created.");
+    }
 
     println!("signer address: {:?}", signer_address);
     let signer_address_bytes: [u8; 20] = signer_address.into();
