@@ -15,8 +15,8 @@ use zk_proof::prove_address;
 use risc0_ethereum_contracts::groth16;
 use sha2::{Digest, Sha256};
 use risc0_zkvm::compute_image_id;
-use std::fs;
 use std::path::Path;
+use anyhow::Result;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start_time = Instant::now();
@@ -87,15 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => eprintln!("Failed to save receipt: {}", e),
     }
 
-    // Verify that the file was created and has content
-    if Path::new(receipt_path).exists() {
-        match fs::metadata(receipt_path) {
-            Ok(metadata) => println!("Receipt file size: {} bytes", metadata.len()),
-            Err(e) => eprintln!("Failed to get receipt file metadata: {}", e),
-        }
-    } else {
-        println!("Receipt file was not created.");
-    }
+
 
     println!("signer address: {:?}", signer_address);
     let signer_address_bytes: [u8; 20] = signer_address.into();
@@ -109,7 +101,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let domain_separator_bytes: [u8; 32] = domain_separator.into();
     println!("Domain Separator: {:?}", domain_separator_bytes);
 
-    println!("Receipt: {:?}", receipt);
+    // println!("Receipt: {:?}", receipt);
 
     receipt.verify(ADDRESS_ID).unwrap();
     println!("Receipt verified.");
@@ -123,26 +115,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         H256,
     ) = receipt.journal.decode().unwrap();
 
-    let seal = groth16::encode(receipt.inner.groth16()?.seal.clone())?;
+    // let seal = groth16::encode(receipt.inner.groth16()?.seal.clone())?;
 
-    let journal = receipt.journal.bytes.clone();
+    // let journal = receipt.journal.bytes.clone();
 
       // Calculate SHA256 hash of the journal
-      let journal_hash = Sha256::digest(&journal);
+    // let journal_hash = Sha256::digest(&journal);
     
-    println!("Journal SHA256 hash: {:?}", journal_hash);
+    // println!("Journal SHA256 hash: {:?}", journal_hash);
 
-    println!("Seal: {:?}", seal);
+    // println!("Seal: {:?}", seal);
+    println!("Proven with guest ID: {}", guest_id());
 
-    let image = compute_image_id(ADDRESS_ELF);
-    println!("image:{:?}",image);
+    // let image = compute_image_id(ADDRESS_ELF);
+    // println!("image:{:?}",image);
 
-    println!("The signer {:?} is verified to be above the age of {:?} on the time of {:?} attestation.", signer_address,threshold_age,current_timestamp);
-    println!("The attestation time is {:?}", attest_time);
-    println!("The domain separator is {:?}", domain_separator);
-    println!("The recipient is {:?}", recipient);
+
+    // println!("The signer {:?} is verified to be above the age of {:?} on the time of {:?} attestation.", signer_address,threshold_age,current_timestamp);
+    // println!("The attestation time is {:?}", attest_time);
+    // println!("The domain separator is {:?}", domain_separator);
+    // println!("The recipient is {:?}", recipient);
     let elapsed_time = start_time.elapsed();
     println!("Execution time: {:?}", elapsed_time);
 
     Ok(())
+}
+
+fn guest_id() -> String {
+    hex::encode(vec_u8_from_u32_slice_little_endian(&ADDRESS_ID))
+}
+
+fn vec_u8_from_u32_slice_little_endian(v: &[u32]) -> Vec<u8> {
+    v.iter().flat_map(|&x| x.to_le_bytes().to_vec()).collect()
 }

@@ -16,4 +16,6 @@ chrono = "=0.4.38"
 serde_json = "1.0.127"
 risc0-ethereum-contracts = { git = "https://github.com/risc0/risc0-ethereum", tag = "v1.0.0" }
 sha2 = "0.10.8"
+hex = "0.4"
+anyhow = "1.0.89"
 

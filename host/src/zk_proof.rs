@@ -3,7 +3,7 @@
 use ethers_core::types::Signature;
 use ethers_core::types::{H160, H256};
 use methods::ADDRESS_ELF;
-use risc0_zkvm::{ExecutorEnv, ProverOpts, Receipt, VerifierContext};
+use risc0_zkvm::{ExecutorEnv, ProverOpts, Receipt, VerifierContext,default_prover};
 use crate::structs::Attest;
 // use tracing_subscriber::registry::Data;
 
@@ -37,8 +37,8 @@ pub fn prove_address(
         .build()
         .unwrap();
 
-    let prover = risc0_zkvm::default_prover();
-    prover.prove(env, ADDRESS_ELF).receipt
+    let prover = default_prover();
+    prover.prove(env, ADDRESS_ELF).unwrap().receipt
 }
 
 
