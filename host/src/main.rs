@@ -117,7 +117,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // let seal = groth16::encode(receipt.inner.groth16()?.seal.clone())?;
 
-    // let journal = receipt.journal.bytes.clone();
+    let journal = receipt.journal.bytes.clone();
+    println!("journal: {:?}", journal);
 
       // Calculate SHA256 hash of the journal
     // let journal_hash = Sha256::digest(&journal);
