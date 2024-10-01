@@ -1,9 +1,9 @@
+use ethers_core::abi::{decode, ParamType};
 use ethers_core::types::Address;
 use ethers_core::types::{RecoveryMessage, Signature, H160, H256};
+use ethers_core::utils::keccak256;
 use risc0_zkvm::guest::env;
 use serde::{Deserialize, Serialize};
-use ethers_core::abi::{decode, ParamType};
-use ethers_core::utils::keccak256;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Attest {
@@ -51,10 +51,8 @@ fn hash_message(domain_separator: &H256, message: &Attest) -> H256 {
     keccak256(&combined).into()
 }
 
-pub fn decode_date_of_birth(data:&Vec<u8>)-> u64{
-    let param_types = vec![
-        ParamType::Uint(256),
-    ];
+pub fn decode_date_of_birth(data: &Vec<u8>) -> u64 {
+    let param_types = vec![ParamType::Uint(256)];
 
     // Decode the data
     let decoded: Vec<ethers_core::abi::Token> =
@@ -76,8 +74,8 @@ fn main() {
 
     println!("Domain Separator: {:?}", domain_separator);
 
-     // Verify that the data is related to the digest
-     let calculated_digest = hash_message(&domain_separator, &attest);
+    // Verify that the data is related to the digest
+    let calculated_digest = hash_message(&domain_separator, &attest);
 
     let recovery_message = RecoveryMessage::Hash(calculated_digest);
     let recovered_address = signature.recover(recovery_message).unwrap();
@@ -101,5 +99,5 @@ fn main() {
                 domain_separator,
             ));
         }
-    } 
+    }
 }

@@ -1,7 +1,7 @@
 // src/helpers.rs
 use ethers_core::abi::Token;
 use ethers_core::types::transaction::eip712::EIP712Domain;
-use ethers_core::types::{H256};
+use ethers_core::types::H256;
 use ethers_core::utils::keccak256;
 
 pub fn domain_separator(domain: &EIP712Domain, type_hash: H256) -> H256 {
@@ -14,4 +14,3 @@ pub fn domain_separator(domain: &EIP712Domain, type_hash: H256) -> H256 {
     ]);
     keccak256(&encoded).into()
 }
-
