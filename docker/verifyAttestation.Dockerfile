@@ -15,7 +15,7 @@ RUN cargo risczero install --version ${RISC0_TOOLCHAIN_VERSION}
 RUN git clone https://github.com/whoisgautxm/ZkAttestifyLocal.git && \
     cd ZkAttestifyLocal && \
     cargo build && \
-    # cargo risczero build --manifest-path ./methods/guest/Cargo.toml && \ this will create the docker deterministic build
+    cargo risczero build --manifest-path ./methods/guest/Cargo.toml && \ 
     BONSAI_API_KEY=${BONSAI_API_KEY} BONSAI_API_URL=${BONSAI_API_URL} cargo run -r
 
 ENTRYPOINT [ "/bin/sh" ]
