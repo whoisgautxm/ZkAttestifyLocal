@@ -2,6 +2,8 @@
 FROM ubuntu:20.04@sha256:3246518d9735254519e1b2ff35f95686e4a5011c90c85344c1f38df7bae9dd37
 
 ARG RISC0_TOOLCHAIN_VERSION=1.1.1
+ARG BONSAI_API_KEY=""
+ARG BONSAI_API_URL=""
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends ca-certificates clang curl libssl-dev pkg-config
@@ -10,7 +12,10 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN cargo install cargo-binstall
 RUN cargo binstall -y --force cargo-risczero
 RUN cargo risczero install --version ${RISC0_TOOLCHAIN_VERSION}
-RUN git clone https://github.com/whoisgautxm/ZkAttestifyLocal.git
-RUN cargo build
+RUN git clone https://github.com/whoisgautxm/ZkAttestifyLocal.git && \
+    cd ZkAttestifyLocal && \
+    cargo build && \
+    # cargo risczero build --manifest-path ./methods/guest/Cargo.toml && \ this will create the docker deterministic build
+    BONSAI_API_KEY=${BONSAI_API_KEY} BONSAI_API_URL=${BONSAI_API_URL} cargo run -r
 
 ENTRYPOINT [ "/bin/sh" ]
