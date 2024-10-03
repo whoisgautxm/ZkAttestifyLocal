@@ -1,3 +1,11 @@
+# To run the Repository - 
+- Make Sure you have risczero v1.1.1 ,  for that either run ```rzup install cargo-risczero v1.1.1``` or ```rzup -v 1.1.1```
+- After that run ```RISCO_USE_DOCKER=1 cargo risczero build --manifest-path ./methods/guest/Cargo.toml```
+- and then run ```RISCO_USE_DOCKER=1 cargo run -r``` (Make sure to have bonsai keys in the env file )
+- This is deterministic build method so that same Image ID is generated across all devices. 
+  
+
+
 # RISC Zero Rust Starter Template
 
 Welcome to the RISC Zero Rust Starter Template! This template is intended to
