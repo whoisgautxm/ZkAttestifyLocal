@@ -90,8 +90,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     receipt.verify(ADDRESS_ID).unwrap();
     println!("Receipt verified.");
 
-    let journal = receipt.journal.bytes.clone();
-    println!("journal:{:?}", journal);
+    // let journal = receipt.journal.bytes.clone();
+    // println!("journal:{:?}", journal);
 
     println!("Proven with guest ID: {}", guest_id());
 
